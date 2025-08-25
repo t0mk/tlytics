@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"tlytics"
+	"github.com/t0mk/tlytics"
 )
 
 func main() {

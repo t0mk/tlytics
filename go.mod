@@ -1,4 +1,4 @@
-module tlytics
+module github.com/t0mk/tlytics
 
 go 1.22.0
 
