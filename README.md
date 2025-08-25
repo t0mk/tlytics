@@ -42,7 +42,7 @@ go run cmd/tlytics/main.go --port 8081
 ### Connecting from Your Application
 
 ```go
-import "tlytics"
+import "github.com/t0mk/tlytics"
 
 // Configure client to connect to remote analytics server
 config := tlytics.Config{
@@ -172,7 +172,7 @@ import (
     "log"
     "time"
     "github.com/gin-gonic/gin"
-    "tlytics"
+    "github.com/t0mk/tlytics"
 )
 
 func main() {
