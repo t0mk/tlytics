@@ -50,6 +50,14 @@ func (c *Client) Emit(e Event) error {
 	return nil
 }
 
+func (c *Client) EmitAndSend(e Event) error {
+	if e.Timestamp.IsZero() {
+		e.Timestamp = time.Now()
+	}
+
+	return c.sendEvents([]Event{e})
+}
+
 func (c *Client) flushWorker() {
 	defer c.wg.Done()
 
@@ -113,4 +121,9 @@ func (c *Client) Flush() {
 func (c *Client) Stop() {
 	close(c.stopCh)
 	c.wg.Wait()
+}
+
+func (c *Client) Close() error {
+	c.Stop()
+	return nil
 }

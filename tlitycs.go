@@ -5,13 +5,16 @@ import (
 	"time"
 )
 
-// Tlytics represents either a client or server instance
+// Emitter interface for both Client and Server instances
+type Emitter interface {
+	Emit(event Event) error
+}
+
+// Tlytics represents a server instance
 type Tlytics struct {
 	db     *DB
 	logger *Logger
 	server *Server
-	client *Client
-	isServer bool
 }
 
 // Config for client connecting to remote server
@@ -28,17 +31,14 @@ type ServerConfig struct {
 }
 
 // NewClient creates a client that connects to a remote analytics server
-func NewClient(config Config) (*Tlytics, error) {
+func NewClient(config Config) (*Client, error) {
 	if config.ServerURL == "" {
 		return nil, fmt.Errorf("ServerURL is required")
 	}
 
 	client := newHTTPClient(config.ServerURL, config.FlushPeriod)
 	
-	return &Tlytics{
-		client:   client,
-		isServer: false,
-	}, nil
+	return client, nil
 }
 
 // NewServer creates a local analytics server
@@ -60,66 +60,40 @@ func NewServer(config ServerConfig) (*Tlytics, error) {
 	server := newHTTPServer(logger, config.ServerPort)
 	
 	return &Tlytics{
-		db:       db,
-		logger:   logger,
-		server:   server,
-		isServer: true,
+		db:     db,
+		logger: logger,
+		server: server,
 	}, nil
 }
 
 // New creates a client (for backwards compatibility, but NewClient is preferred)
-func New(config Config) (*Tlytics, error) {
+func New(config Config) (*Client, error) {
 	return NewClient(config)
 }
 
-// Emit sends an event (works for both client and server)
+// Emit sends an event to the server logger
 func (t *Tlytics) Emit(event Event) error {
-	if t.isServer {
-		return t.logger.Emit(event)
-	}
-	return t.client.Emit(event)
+	return t.logger.Emit(event)
 }
 
-// GetLogger returns the logger (only for server instances)
+// GetLogger returns the server logger
 func (t *Tlytics) GetLogger() *Logger {
-	if !t.isServer {
-		return nil
-	}
 	return t.logger
 }
 
-// GetClient returns the client (only for client instances)
-func (t *Tlytics) GetClient() *Client {
-	if t.isServer {
-		return nil
-	}
-	return t.client
-}
 
-// StartServer starts the analytics server (only for server instances)
+// StartServer starts the analytics server
 func (t *Tlytics) StartServer() error {
-	if !t.isServer {
-		return fmt.Errorf("cannot start server on client instance")
-	}
 	return t.server.Start()
 }
 
-// Flush manually flushes queued events
+// Flush manually flushes queued events in the server logger
 func (t *Tlytics) Flush() {
-	if t.isServer {
-		t.logger.Flush()
-	} else {
-		t.client.Flush()
-	}
+	t.logger.Flush()
 }
 
-// Close properly closes the tlytics instance
+// Close properly closes the server instance
 func (t *Tlytics) Close() error {
-	if t.isServer {
-		t.logger.Stop()
-		return t.db.Close()
-	} else {
-		t.client.Stop()
-		return nil
-	}
+	t.logger.Stop()
+	return t.db.Close()
 }

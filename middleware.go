@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GinMiddleware(analytics *Tlytics) gin.HandlerFunc {
+func GinMiddleware(analytics Emitter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		
@@ -32,7 +32,7 @@ func GinMiddleware(analytics *Tlytics) gin.HandlerFunc {
 	}
 }
 
-func TrackEvent(analytics *Tlytics, key string, data map[string]interface{}) gin.HandlerFunc {
+func TrackEvent(analytics Emitter, key string, data map[string]interface{}) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		
